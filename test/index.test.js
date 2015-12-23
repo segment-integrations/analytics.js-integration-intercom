@@ -235,18 +235,6 @@ describe('Intercom', function() {
         });
       });
 
-      it('should allow passing increments', function() {
-        analytics.identify('id', {}, {
-          Intercom: { increments: { number: 42 } }
-        });
-        analytics.called(window.Intercom, 'boot', {
-          app_id: options.appId,
-          user_id: 'id',
-          increments: { number: 42 },
-          id: 'id'
-        });
-      });
-
       it('should send widget settings if the activator isnt the default one.', function() {
         intercom.options.activator = '#my-widget';
         analytics.identify('id');
