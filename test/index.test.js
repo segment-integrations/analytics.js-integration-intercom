@@ -1,8 +1,9 @@
+'use strict';
 
-var Analytics = require('analytics.js-core').constructor;
-var integration = require('analytics.js-integration');
-var sandbox = require('clear-env');
-var tester = require('analytics.js-integration-tester');
+var Analytics = require('@segment/analytics.js-core').constructor;
+var integration = require('@segment/analytics.js-integration');
+var sandbox = require('@segment/clear-env');
+var tester = require('@segment/analytics.js-integration-tester');
 var Intercom = require('../lib/');
 
 describe('Intercom', function() {
@@ -20,11 +21,12 @@ describe('Intercom', function() {
     analytics.add(intercom);
   });
 
-  afterEach(function() {
+  afterEach(function(done) {
     analytics.restore();
     analytics.reset();
     intercom.reset();
     sandbox();
+    done();
   });
 
   it('should have the right settings', function() {
@@ -311,23 +313,27 @@ describe('Intercom', function() {
       });
 
       it('should work with .created_at', function() {
-        analytics.group('id', { name: 'Name', createdAt: 'Jan 1, 2000 3:32:33 PM' });
+        var date = Date.now();
+        date = Math.floor(date / 1000);
+        analytics.group('id', { name: 'Name', createdAt: date });
         analytics.called(window.Intercom, 'update', {
           company: {
             id: 'id',
             name: 'Name',
-            created_at: 'Jan 1, 2000 3:32:33 PM'
+            created_at: date
           }
         });
       });
 
       it('should work with .created', function() {
-        analytics.group('id', { name: 'Name', created: 'Jan 1, 2000 3:32:33 PM' });
+        var date = Date.now();
+        date = Math.floor(date / 1000);
+        analytics.group('id', { name: 'Name', created: date });
         analytics.called(window.Intercom, 'update', {
           company: {
             id: 'id',
             name: 'Name',
-            created_at: 'Jan 1, 2000 3:32:33 PM'
+            created_at: date
           }
         });
       });
