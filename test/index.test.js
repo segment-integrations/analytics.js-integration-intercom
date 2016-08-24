@@ -349,5 +349,46 @@ describe('Intercom', function() {
         analytics.called(window.Intercom, 'trackEvent', 'event', {});
       });
     });
+
+    describe('integration settings', function() {
+      beforeEach(function() {
+        analytics.stub(window, 'Intercom');
+      });
+
+      it('page: should set hide_default_launcher if integration setting exists for it', function() {
+        var integrationSettings = {
+          Intercom: { hideDefaultLauncher: true } 
+        };
+        analytics.page({}, integrationSettings);
+        analytics.called(window.Intercom, 'boot', {
+          app_id: options.appId,
+          hide_default_launcher: true
+        });
+      }); 
+
+      it('identify: should set hide_default_launcher if integration setting exists for it', function() {
+        var integrationSettings = {
+          Intercom: { hideDefaultLauncher: true } 
+        };
+        analytics.identify('id', {}, integrationSettings);
+        analytics.called(window.Intercom, 'boot', {
+          app_id: options.appId,
+          user_id: 'id',
+          id: 'id',
+          hide_default_launcher: true
+        });
+      }); 
+
+      it('group: should set hide_default_launcher if integration setting exists for it', function() {
+        var integrationSettings = {
+          Intercom: { hideDefaultLauncher: true } 
+        };
+        analytics.group('id', {}, integrationSettings);
+        analytics.called(window.Intercom, 'update', {
+          company: { id: 'id' },
+          hide_default_launcher: true
+        });
+      }); 
+    });
   });
 });
