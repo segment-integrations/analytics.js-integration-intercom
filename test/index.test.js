@@ -302,11 +302,6 @@ describe('Intercom', function() {
         analytics.called(window.Intercom, 'update', { company: { id: 'id' } });
       });
 
-      it('should send map monthlySpend to monthly_spend', function() {
-        analytics.group('id', { monthlySpend: 17.38 });
-        analytics.called(window.Intercom, 'update', { company: { id: 'id', monthly_spend: 17.38 } });
-      });
-
       it('should send an id and properties', function() {
         analytics.group('id', { name: 'Name' });
         analytics.called(window.Intercom, 'update', {
