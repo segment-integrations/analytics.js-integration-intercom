@@ -1,4 +1,9 @@
 
+2.1.2 / 2017-02-02
+==================
+
+  * Properly map monthlySpend and revenue for parity with server-side integration
+
 2.1.1 / 2016-09-13
 ==================
 

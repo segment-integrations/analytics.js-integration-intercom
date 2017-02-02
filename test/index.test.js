@@ -302,6 +302,11 @@ describe('Intercom', function() {
         analytics.called(window.Intercom, 'update', { company: { id: 'id' } });
       });
 
+      it('should send map monthlySpend to monthly_spend', function() {
+        analytics.group('id', { monthlySpend: 17.38 });
+        analytics.called(window.Intercom, 'update', { company: { id: 'id', monthly_spend: 17.38 } });
+      });
+
       it('should send an id and properties', function() {
         analytics.group('id', { name: 'Name' });
         analytics.called(window.Intercom, 'update', {
@@ -347,6 +352,11 @@ describe('Intercom', function() {
       it('should send an event', function() {
         analytics.track('event');
         analytics.called(window.Intercom, 'trackEvent', 'event', {});
+      });
+
+      it('should map price correctly', function() {
+        analytics.track('event', { revenue: 200.00, currency: 50.00 });
+        analytics.called(window.Intercom, 'trackEvent', 'event', { price: { amount: 20000, currency: 50.00 } });
       });
     });
 
