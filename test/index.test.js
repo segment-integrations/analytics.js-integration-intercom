@@ -10,7 +10,14 @@ describe('Intercom', function() {
   var analytics;
   var intercom;
   var options = {
-    appId: 'a3vy8ufv'
+    appId: 'a3vy8ufv',
+    blacklisted: {
+      stringifyMe: 'stringify',
+      flattenMe: 'flatten',
+      dropMe: 'drop'
+    },
+    defaultMethod: 'flatten',
+    richLinkProperties: []
   };
 
   beforeEach(function() {
@@ -34,6 +41,9 @@ describe('Intercom', function() {
       .global('Intercom')
       .option('activator', '#IntercomDefaultWidget')
       .option('appId', '')
+      .option('blacklisted', {})
+      .option('defaultMethod', 'flatten')
+      .option('richLinkProperties', [])
       .tag('<script src="https://widget.intercom.io/widget/{{ appId }}">'));
   });
 
@@ -149,6 +159,105 @@ describe('Intercom', function() {
           firstName: 'john',
           lastName: 'doe',
           name: 'baz',
+          id: 'id'
+        });
+      });
+
+      it('should send custom traits', function() {
+        analytics.identify('id', { album: 'Starboy' });
+        analytics.called(window.Intercom, 'boot', {
+          app_id: options.appId,
+          user_id: 'id',
+          album: 'Starboy',
+          id: 'id'
+        });
+      });
+
+      it('should selectively stringify, flatten, or drop traits', function() {
+        analytics.identify('id', {
+          dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
+          stringifyMe: [{ a: 'b' }],
+          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } }
+        });
+        analytics.called(window.Intercom, 'boot', {
+          app_id: options.appId,
+          user_id: 'id',
+          stringifyMe: '[{\"a\":\"b\"}]',
+          'flattenMe.pizza': 'cheese',
+          'flattenMe.spongebob.patrick': 'star',
+          id: 'id'
+        });
+      });
+
+      it('should let you set flatten as a default method for handling nested objects', function() {
+        intercom.options.defaultMethod = 'flatten';
+
+        analytics.identify('id', {
+          dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
+          stringifyMe: [{ a: 'b' }],
+          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } },
+          array: ['food', { nom: 'avocados' } ],
+          song: 'Starboy',
+          artist: { singer: 'the weekend', beats: 'daft punk' }
+        });
+        analytics.called(window.Intercom, 'boot', {
+          app_id: options.appId,
+          user_id: 'id',
+          stringifyMe: '[{\"a\":\"b\"}]',
+          'flattenMe.pizza': 'cheese',
+          'flattenMe.spongebob.patrick': 'star',
+          song: 'Starboy',
+          'artist.singer': 'the weekend',
+          'artist.beats': 'daft punk',
+          'array.0': 'food',
+          'array.1.nom': 'avocados',
+          id: 'id'
+        });
+      });
+
+      it('should let you set stringify as a default method for handling nested objects', function() {
+        intercom.options.defaultMethod = 'stringify';
+
+        analytics.identify('id', {
+          dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
+          stringifyMe: [{ a: 'b' }],
+          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } },
+          array: ['food', { nom: 'avocados' } ],
+          song: 'Starboy',
+          artist: { singer: 'the weekend', beats: 'daft punk' }
+        });
+        analytics.called(window.Intercom, 'boot', {
+          app_id: options.appId,
+          user_id: 'id',
+          stringifyMe: '[{\"a\":\"b\"}]',
+          'flattenMe.pizza': 'cheese',
+          'flattenMe.spongebob.patrick': 'star',
+          song: 'Starboy',
+          array: '[\"food\",{\"nom\":\"avocados\"}]',
+          artist: '{\"singer\":\"the weekend\",\"beats\":\"daft punk\"}',
+          id: 'id'
+        });
+      });
+
+
+      it('should let you set drop as a default method for handling nested objects', function() {
+        intercom.options.defaultMethod = 'drop';
+
+        analytics.identify('id', {
+          dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
+          stringifyMe: [{ a: 'b' }],
+          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } },
+          array: ['food', { nom: 'avocados' } ],
+          song: 'Starboy',
+          artist: { singer: 'the weekend', beats: 'daft punk' }
+        });
+        analytics.called(window.Intercom, 'boot', {
+          app_id: options.appId,
+          user_id: 'id',
+          stringifyMe: '[{\"a\":\"b\"}]',
+          'flattenMe.pizza': 'cheese',
+          'flattenMe.spongebob.patrick': 'star',
+          song: 'Starboy',
           id: 'id'
         });
       });
@@ -342,6 +451,32 @@ describe('Intercom', function() {
           }
         });
       });
+
+      it('should send custom traits', function() {
+        analytics.group('id', { album: 'Starboy' });
+        analytics.called(window.Intercom, 'update', {
+          company: {
+            album: 'Starboy',
+            id: 'id' 
+          }
+        });
+      });
+
+      it('should selectively stringify, flatten, or drop traits', function() {
+        analytics.group('id', {
+          dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
+          stringifyMe: [{ a: 'b' }],
+          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } }
+        });
+        analytics.called(window.Intercom, 'update', { 
+          company: {
+            stringifyMe: '[{\"a\":\"b\"}]',
+            'flattenMe.pizza': 'cheese',
+            'flattenMe.spongebob.patrick': 'star',
+            id: 'id'
+          }
+        });
+      });
     });
 
     describe('#track', function() {
@@ -355,8 +490,45 @@ describe('Intercom', function() {
       });
 
       it('should map price correctly', function() {
-        analytics.track('event', { revenue: 200.00, currency: 50.00 });
-        analytics.called(window.Intercom, 'trackEvent', 'event', { price: { amount: 20000, currency: 50.00 } });
+        analytics.track('event', { revenue: 200.00, currency: 'USD' });
+        analytics.called(window.Intercom, 'trackEvent', 'event', { price: { amount: 20000, currency: 'USD' } });
+      });
+
+      it('should send custom traits', function() {
+        analytics.track('event', { album: 'Starboy' });
+        analytics.called(window.Intercom, 'trackEvent', 'event', {
+          album: 'Starboy'
+        });
+      });
+
+      it('should selectively stringify, flatten, or drop traits', function() {
+        analytics.track('event', {
+          dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
+          stringifyMe: [{ a: 'b' }],
+          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } }
+        });
+        analytics.called(window.Intercom, 'trackEvent', 'event', { 
+          stringifyMe: '[{\"a\":\"b\"}]',
+          'flattenMe.pizza': 'cheese',
+          'flattenMe.spongebob.patrick': 'star'
+        });
+      });
+
+      it('should send Rich Link as nested object', function() {
+        intercom.options.richLinkProperties = ['article', 'orderNumber'];
+
+        analytics.track('event', { 
+          article: {
+            url: 'www.suh.com',
+            value: 'suh dude'
+          }
+        });
+        analytics.called(window.Intercom, 'trackEvent', 'event', {
+          article: {
+            url: 'www.suh.com',
+            value: 'suh dude'
+          }
+        });
       });
     });
 
