@@ -41,8 +41,6 @@ describe('Intercom', function() {
       .global('Intercom')
       .option('activator', '#IntercomDefaultWidget')
       .option('appId', '')
-      .option('blacklisted', {})
-      .option('defaultMethod', 'flatten')
       .option('richLinkProperties', [])
       .tag('<script src="https://widget.intercom.io/widget/{{ appId }}">'));
   });
@@ -173,7 +171,7 @@ describe('Intercom', function() {
         });
       });
 
-      it('should selectively stringify, flatten, or drop traits', function() {
+      it('should drop arrays or objects in traits', function() {
         analytics.identify('id', {
           dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
           stringifyMe: [{ a: 'b' }],
@@ -182,82 +180,6 @@ describe('Intercom', function() {
         analytics.called(window.Intercom, 'boot', {
           app_id: options.appId,
           user_id: 'id',
-          stringifyMe: '[{\"a\":\"b\"}]',
-          'flattenMe.pizza': 'cheese',
-          'flattenMe.spongebob.patrick': 'star',
-          id: 'id'
-        });
-      });
-
-      it('should let you set flatten as a default method for handling nested objects', function() {
-        intercom.options.defaultMethod = 'flatten';
-
-        analytics.identify('id', {
-          dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
-          stringifyMe: [{ a: 'b' }],
-          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } },
-          array: ['food', { nom: 'avocados' } ],
-          song: 'Starboy',
-          artist: { singer: 'the weekend', beats: 'daft punk' }
-        });
-        analytics.called(window.Intercom, 'boot', {
-          app_id: options.appId,
-          user_id: 'id',
-          stringifyMe: '[{\"a\":\"b\"}]',
-          'flattenMe.pizza': 'cheese',
-          'flattenMe.spongebob.patrick': 'star',
-          song: 'Starboy',
-          'artist.singer': 'the weekend',
-          'artist.beats': 'daft punk',
-          'array.0': 'food',
-          'array.1.nom': 'avocados',
-          id: 'id'
-        });
-      });
-
-      it('should let you set stringify as a default method for handling nested objects', function() {
-        intercom.options.defaultMethod = 'stringify';
-
-        analytics.identify('id', {
-          dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
-          stringifyMe: [{ a: 'b' }],
-          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } },
-          array: ['food', { nom: 'avocados' } ],
-          song: 'Starboy',
-          artist: { singer: 'the weekend', beats: 'daft punk' }
-        });
-        analytics.called(window.Intercom, 'boot', {
-          app_id: options.appId,
-          user_id: 'id',
-          stringifyMe: '[{\"a\":\"b\"}]',
-          'flattenMe.pizza': 'cheese',
-          'flattenMe.spongebob.patrick': 'star',
-          song: 'Starboy',
-          array: '[\"food\",{\"nom\":\"avocados\"}]',
-          artist: '{\"singer\":\"the weekend\",\"beats\":\"daft punk\"}',
-          id: 'id'
-        });
-      });
-
-
-      it('should let you set drop as a default method for handling nested objects', function() {
-        intercom.options.defaultMethod = 'drop';
-
-        analytics.identify('id', {
-          dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
-          stringifyMe: [{ a: 'b' }],
-          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } },
-          array: ['food', { nom: 'avocados' } ],
-          song: 'Starboy',
-          artist: { singer: 'the weekend', beats: 'daft punk' }
-        });
-        analytics.called(window.Intercom, 'boot', {
-          app_id: options.appId,
-          user_id: 'id',
-          stringifyMe: '[{\"a\":\"b\"}]',
-          'flattenMe.pizza': 'cheese',
-          'flattenMe.spongebob.patrick': 'star',
-          song: 'Starboy',
           id: 'id'
         });
       });
@@ -457,22 +379,19 @@ describe('Intercom', function() {
         analytics.called(window.Intercom, 'update', {
           company: {
             album: 'Starboy',
-            id: 'id' 
+            id: 'id'
           }
         });
       });
 
-      it('should selectively stringify, flatten, or drop traits', function() {
+      it('should drop arrays or objects in traits', function() {
         analytics.group('id', {
           dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
           stringifyMe: [{ a: 'b' }],
           flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } }
         });
-        analytics.called(window.Intercom, 'update', { 
+        analytics.called(window.Intercom, 'update', {
           company: {
-            stringifyMe: '[{\"a\":\"b\"}]',
-            'flattenMe.pizza': 'cheese',
-            'flattenMe.spongebob.patrick': 'star',
             id: 'id'
           }
         });
@@ -501,23 +420,22 @@ describe('Intercom', function() {
         });
       });
 
-      it('should selectively stringify, flatten, or drop traits', function() {
+      it('should drop arrays or objects in properties', function() {
         analytics.track('event', {
           dropMe: { foo: 'bar', ahoy: { okay: 'hello' } },
           stringifyMe: [{ a: 'b' }],
-          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } }
+          flattenMe: { pizza: 'cheese', spongebob: { patrick: 'star' } },
+          suh: 'dude'
         });
-        analytics.called(window.Intercom, 'trackEvent', 'event', { 
-          stringifyMe: '[{\"a\":\"b\"}]',
-          'flattenMe.pizza': 'cheese',
-          'flattenMe.spongebob.patrick': 'star'
+        analytics.called(window.Intercom, 'trackEvent', 'event', {
+          suh: 'dude'
         });
       });
 
       it('should send Rich Link as nested object', function() {
         intercom.options.richLinkProperties = ['article', 'orderNumber'];
 
-        analytics.track('event', { 
+        analytics.track('event', {
           article: {
             url: 'www.suh.com',
             value: 'suh dude'
@@ -539,18 +457,18 @@ describe('Intercom', function() {
 
       it('page: should set hide_default_launcher if integration setting exists for it', function() {
         var integrationSettings = {
-          Intercom: { hideDefaultLauncher: true } 
+          Intercom: { hideDefaultLauncher: true }
         };
         analytics.page({}, integrationSettings);
         analytics.called(window.Intercom, 'boot', {
           app_id: options.appId,
           hide_default_launcher: true
         });
-      }); 
+      });
 
       it('identify: should set hide_default_launcher if integration setting exists for it', function() {
         var integrationSettings = {
-          Intercom: { hideDefaultLauncher: true } 
+          Intercom: { hideDefaultLauncher: true }
         };
         analytics.identify('id', {}, integrationSettings);
         analytics.called(window.Intercom, 'boot', {
@@ -559,18 +477,18 @@ describe('Intercom', function() {
           id: 'id',
           hide_default_launcher: true
         });
-      }); 
+      });
 
       it('group: should set hide_default_launcher if integration setting exists for it', function() {
         var integrationSettings = {
-          Intercom: { hideDefaultLauncher: true } 
+          Intercom: { hideDefaultLauncher: true }
         };
         analytics.group('id', {}, integrationSettings);
         analytics.called(window.Intercom, 'update', {
           company: { id: 'id' },
           hide_default_launcher: true
         });
-      }); 
+      });
     });
   });
 });

@@ -1,4 +1,9 @@
 
+3.0.0 / 2017-08-21
+==================
+
+  * Drop support for stringifying/flattened arrays or objects as requested by Intercom
+
 2.2.3 / 2017-02-16
 ==================
 
